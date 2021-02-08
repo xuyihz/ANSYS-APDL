@@ -90,8 +90,10 @@ APTN, ALL                   !Partitions areas. 分隔运算，边界共享。
 !!!网格划分
 !定义单元类型
 ET, 1, SHELL181 !壳单元
+ET, 2, MASS21   !质量单元
 !实常数
 R, 1, t1        !壁厚
+R, 2, 0         !重量
 !材料属性
 MATNUM = 1              !材料参考号
 MP, EX, MATNUM, Es      !弹性模量
@@ -100,8 +102,15 @@ TB, MISO, MATNUM        !非线性材料 !MISO多线性各向同性强化
 TBPT, DEFI, Sfy/Es, Sfy !本构 折线
 TBPT, DEFI, 0.5, Sfy
 
-NKPT, f_n, 4    !加载主节点 !在关键点处定义节点 !NKPT, NODE, NPT
-NKPT, s_n, 2    !支座主节点
+!利用MASS21单元 CERIG命令耦合主节点与从节点群 方便加载与约束
+NKPT, f_n, 4            !加载主节点 !在关键点处定义节点 !NKPT, NODE, NPT
+NKPT, s_n, 2            !支座主节点
+TYPE, 2                 !定义单元类型号
+MAT, MATNUM             !定义材料类型号
+REAL, 2                 !定义实常数号
+E, f_n                  !定义单元
+E, s_n                  !定义单元
+
 LESIZE, circle1, msize*2!线的单元尺寸定义
 LESIZE, circle2, msize*2!边界处可划分的粗一点(加速计算)
 AATT, MATNUM, 1, 1      !设置面单元属性!AATT, MAT, REAL, TYPE, ESYS, SECN
@@ -110,15 +119,10 @@ MSHAPE, 0               !网格形状(0:4/6;1:3/4)
 MSHKEY, 0               !网格类型(0自由1映射)
 AMESH, ALL              !划分网格
 
-!CSYS, 13                !激活局部坐标系
-!NSEL, S, LOC, Z, len2
-!CM, force_N, NODE       !加载面节点
-!CSYS, 0                 !激活整体坐标系
-!NSEL, S, LOC, Z, len1
-!CM, support_N, NODE     !支座面节点
-
 CSYS, 13                !激活局部坐标系
+NROTAT, f_n             !Rotates nodal coordinate systems into the active system.
 NSEL, S, LOC, Z, len2
+NROTAT, ALL             !Rotates nodal coordinate systems into the active system.
 CERIG, f_n, ALL, ALL    !加载刚域 !CERIG, MASTE, SLAVE, Ldof, Ldof2, Ldof3, Ldof4, Ldof5 !主节点, 从节点
 CSYS, 0                 !激活整体坐标系
 NSEL, S, LOC, Z, len1
@@ -128,21 +132,17 @@ ALLSEL                  !Selects all entities with a single command.
 !!!加载
 !加约束
 CSYS, 0                 !激活整体坐标系
-D, s_n, ALL             !加约束 !D, Node, Lab, VALUE, VALUE2, NEND, NINC, Lab2, Lab3, Lab4, Lab5, Lab6
-!ALLSEL                  !Selects all entities with a single command.
+D, s_n, ALL             !刚接 !D, Node, Lab, VALUE, VALUE2, NEND, NINC, Lab2, Lab3, Lab4, Lab5, Lab6
+!D, s_n, UX, , , , , UY, UZ  !铰接 !此处铰接会成机构。
 !加荷载
-CSYS, 13                !激活局部坐标系
-!NSEL, S, LOC, Z, len2
-!*GET, Par, Entity, ENTNUM, Item1, IT1NUM, Item2, IT2NUM
-!*GET, Nf_num, NODE, 0, COUNT    !Retrieves a value and stores it as a scalar parameter or part of an array parameter.
 !F, NODE, Lab, VALUE, VALUE2, NEND, NINC
+!加在节点坐标系上
 F, f_n, FX, f_x     !Specifies force loads at nodes.
 F, f_n, FY, f_y     !Specifies force loads at nodes.
 F, f_n, FZ, f_z     !Specifies force loads at nodes.
 F, f_n, MX, m_x     !Specifies force loads at nodes.
 F, f_n, MY, m_y     !Specifies force loads at nodes.
 F, f_n, MZ, m_z     !Specifies force loads at nodes.
-!ALLSEL                  !Selects all entities with a single command.
 
 !!!!
 !!!!  求解
