@@ -23,6 +23,7 @@ lenCT = lenTB+len3  !十字板顶端 CrossTop
 angle1 = PI/4       !折段角度
 d1 = 400            !管外径
 t1 = 10             !管壁厚
+t2 = 16             !十字板厚
 crossR = d1/2+t1*2  !十字板长度的一半(坐标定位用)
 msize = 20          !网格尺寸
 !编号
@@ -94,10 +95,6 @@ CSYS, 0     !激活整体坐标系
 WPROTA, , , (angle1/PI*180)/2   !旋转工作平面
 ASBW, ALL   !ASBW, NA, SEPO, KEEP
 
-!ASEL, S, AREA, , 17, 20     !选择面
-!CM, cube1, AREA             !命名
-!ASEL, S, AREA, , 21, 24     !选择面
-!CM, cube2, AREA             !命名
 CSYS, 11                    !激活局部坐标系
 ASEL, S, LOC, X, d1/2       !选择所有直管面
 ASEL, R, LOC, Z, 0, d1      !取消选择需要的部分(几何形心在0~d1中的面)
@@ -110,16 +107,20 @@ CM, cube2, AREA             !命名
 ALLSEL
 ADELE, cube1, , , 1         !删除多余的面
 ADELE, cube2, , , 1
+CSYS, 11                    !激活局部坐标系
+ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
 APTN, ALL                   !Partitions areas. 分隔运算，边界共享。
+ALLSEL
 
 !!!网格划分
-!定义单元类型
-ET, 1, SHELL181 !壳单元
-ET, 2, MASS21   !质量单元
-!实常数
-R, 1, t1        !壁厚
-R, 2, 0         !重量
-!材料属性
+!定义单元类型 TYPE
+ET, 1, MASS21   !质量单元
+ET, 2, SHELL181 !壳单元
+!实常数 REAL
+R, 1, 0         !重量
+R, 2, t1        !壁厚
+R, 3, t2        !壁厚
+!材料属性 MAT
 MATNUM = 1              !材料参考号
 MP, EX, MATNUM, Es      !弹性模量
 MP, PRXY, MATNUM, PRs   !泊松比
@@ -130,15 +131,19 @@ TBPT, DEFI, 0.5, Sfy
 !利用MASS21单元 CERIG命令耦合主节点与从节点群 方便加载与约束
 NKPT, f_n, 4            !加载主节点 !在关键点处定义节点 !NKPT, NODE, NPT
 NKPT, s_n, 2            !支座主节点
-TYPE, 2                 !定义单元类型号
+TYPE, 1                 !定义单元类型号
 MAT, MATNUM             !定义材料类型号
-REAL, 2                 !定义实常数号
+REAL, 1                 !定义实常数号
 E, f_n                  !定义单元
 E, s_n                  !定义单元
 
-LESIZE, circle1, msize*2!线的单元尺寸定义
+CSYS, 11                !激活局部坐标系
+ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
+AATT, MATNUM, 3, 2      !设置面单元属性!AATT, MAT, REAL, TYPE, ESYS, SECN
+ASEL, INVE              !选择除十字板外AREA(即圆管)
+AATT, MATNUM, 2, 2      !设置面单元属性!AATT, MAT, REAL, TYPE, ESYS, SECN
+ALLSEL                  !全选
 LESIZE, circle2, msize*2!边界处可划分的粗一点(加速计算)
-AATT, MATNUM, 1, 1      !设置面单元属性!AATT, MAT, REAL, TYPE, ESYS, SECN
 ESIZE, msize            !网格尺寸
 MSHAPE, 0               !网格形状(0:4/6;1:3/4)
 MSHKEY, 0               !网格类型(0自由1映射)
@@ -153,15 +158,16 @@ CSYS, 0                 !激活整体坐标系
 NSEL, S, LOC, Z, len1
 CERIG, s_n, ALL, ALL    !支座刚域
 ALLSEL                  !Selects all entities with a single command.
+NUMMRG, NODE            !合并重合节点 !NUMMRG, Label, TOLER, GTOLER, Action, Switch 
+NUMCMP, NODE            !压缩节点编号
 
 !!!加载
 !加约束
 CSYS, 0                 !激活整体坐标系
 D, s_n, ALL             !刚接 !D, Node, Lab, VALUE, VALUE2, NEND, NINC, Lab2, Lab3, Lab4, Lab5, Lab6
 !D, s_n, UX, , , , , UY, UZ  !铰接 !此处铰接会成机构。
-!加荷载
+!加荷载 !加在节点坐标系上
 !F, NODE, Lab, VALUE, VALUE2, NEND, NINC
-!加在节点坐标系上
 F, f_n, FX, f_x     !Specifies force loads at nodes.
 F, f_n, FY, f_y     !Specifies force loads at nodes.
 F, f_n, FZ, f_z     !Specifies force loads at nodes.
