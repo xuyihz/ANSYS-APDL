@@ -20,7 +20,8 @@ len3 = 200          !十字板与圆管重合长度
 len4 = 200          !十字板露出长度
 lenTB = len1+len4   !圆管底端 TubeBottom
 lenCT = lenTB+len3  !十字板顶端 CrossTop
-angle1 = PI/4       !折段角度
+angle1 = PI/4       !折段角度(与Z轴)
+angle2 = ATAN((len2*cos(angle1))/(len2*sin(angle1)-len1))   !加载点对着支座点的角度 !因len1是负的，故这里为减号
 d1 = 250            !管外径
 t1 = 10             !管壁厚
 t2 = 16             !十字板厚
@@ -48,6 +49,7 @@ substeps_num = 10
 LOCAL, 11, CYLIN    !局部坐标系 柱坐标系
 LOCAL, 12, CYLIN, , , , , , angle1/PI*180   !局部坐标系 斜柱坐标系
 LOCAL, 13, CART, , , , , , angle1/PI*180    !局部坐标系 斜坐标系
+LOCAL, 14, CART, , , , , , angle2/PI*180    !局部坐标系 加载点对着支座点的斜坐标系
 
 !激活整体坐标系
 CSYS, 0
@@ -104,6 +106,7 @@ WPCSYS, , 0 $ WPROTA, , , 90 $ WPOFFS, 0, 0, -d1/2 $ ASBW, ALL
 WPCSYS, , 0 $ WPROTA, , 90,  $ WPOFFS, 0, 0, d1/2 $ ASBW, ALL
 WPCSYS, , 0 $ WPROTA, , 90,  $ WPOFFS, 0, 0, -d1/2 $ ASBW, ALL
 WPCSYS, , 0
+WPSTYL, , , , , , , , 0     !不显示工作平面 !WPSTYL, SNAP, GRSPAC, GRMIN, GRMAX, WPTOL, WPCTYP, GRTYPE, WPVIS, SNAPANG
 ALLSEL
 
 CSYS, 11                    !激活局部坐标系
@@ -162,9 +165,11 @@ MSHKEY, 0               !网格类型(0自由1映射)
 AMESH, ALL              !划分网格
 
 CSYS, 13                !激活局部坐标系
-NROTAT, f_n             !Rotates nodal coordinate systems into the active system.
 NSEL, S, LOC, Z, len2
 NROTAT, ALL             !Rotates nodal coordinate systems into the active system.
+CSYS, 14                !激活局部坐标系(力指向支座)
+!CSYS, 13                !激活局部坐标系(力指向圆管方向)
+NROTAT, f_n             !Rotates nodal coordinate systems into the active system.
 CERIG, f_n, ALL, ALL    !加载刚域 !CERIG, MASTE, SLAVE, Ldof, Ldof2, Ldof3, Ldof4, Ldof5 !主节点, 从节点
 ALLSEL                  !Selects all entities with a single command.
 CSYS, 0                 !激活整体坐标系
