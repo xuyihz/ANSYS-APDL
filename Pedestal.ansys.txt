@@ -7,12 +7,13 @@ FINISH
 !!!!
 !!!!  参数变量
 !!!!
+*AFUN, DEG  !统一角度单位 (因LOCAL等命令为degree) !*AFUN, Lab!Specifies units for angular functions in parameter expressions.
 !常量
 PI = ACOS(-1)
 Es = 2.06e5         !钢的弹性模量 N/mm2
 Gs = 0.79e5         !钢的剪切模量 N/mm2
 PRs = Es/(2*Gs)-1   !钢的泊松比
-Sfy = 345           !钢的屈服强度 N/mm2
+Sfy = 345           !钢的屈服强度 N/mm2 !根据板材厚度查表
 !参数
 len1 = -600         !支座标高(相对于正负零)
 len2 = 1000         !折段长度
@@ -20,7 +21,7 @@ len3 = 200          !十字板与圆管重合长度
 len4 = 200          !十字板露出长度
 lenTB = len1+len4   !圆管底端 TubeBottom
 lenCT = lenTB+len3  !十字板顶端 CrossTop
-angle1 = PI/4       !折段角度(与Z轴)
+angle1 = 45         !折段角度(与Z轴)
 angle2 = ATAN((len2*cos(angle1))/(len2*sin(angle1)-len1))   !加载点对着支座点的角度 !因len1是负的，故这里为减号
 d1 = 250            !管外径
 t1 = 10             !管壁厚
@@ -47,9 +48,9 @@ substeps_num = 10
 
 !定义局部坐标系
 LOCAL, 11, CYLIN    !局部坐标系 柱坐标系
-LOCAL, 12, CYLIN, , , , , , angle1/PI*180   !局部坐标系 斜柱坐标系
-LOCAL, 13, CART, , , , , , angle1/PI*180    !局部坐标系 斜坐标系
-LOCAL, 14, CART, , , , , , angle2/PI*180    !局部坐标系 加载点对着支座点的斜坐标系
+LOCAL, 12, CYLIN, , , , , , angle1  !局部坐标系 斜柱坐标系 (in degrees)
+LOCAL, 13, CART, , , , , , angle1   !局部坐标系 斜坐标系
+LOCAL, 14, CART, , , , , , angle2   !局部坐标系 加载点对着支座点的斜坐标系
 
 !激活整体坐标系
 CSYS, 0
@@ -95,7 +96,7 @@ ADRAG, 5, , , , , , 3       !拖拉形成十字板
 !用工作平面切分
 CSYS, 0     !激活整体坐标系
 WPCSYS, , 0 !工作平面回到整体坐标系
-WPROTA, , , (angle1/PI*180)/2   !旋转工作平面 !WPROTA, THXY, THYZ, THZX
+WPROTA, , , angle1/2    !旋转工作平面 !WPROTA, THXY, THYZ, THZX (in degrees)
 ASBW, ALL   !ASBW, NA, SEPO, KEEP
 CSYS, 0     !激活整体坐标系
 ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
