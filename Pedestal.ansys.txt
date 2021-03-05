@@ -21,8 +21,8 @@ len3 = 200          !十字板与圆管重合长度
 len4 = 200          !十字板露出长度
 lenTB = len1+len4   !圆管底端 TubeBottom
 lenCT = lenTB+len3  !十字板顶端 CrossTop
-angle1 = 45         !折段角度(与Z轴)
-angle2 = ATAN((len2*cos(angle1))/(len2*sin(angle1)-len1))   !加载点对着支座点的角度 !因len1是负的，故这里为减号
+angle1 = 23         !折段角度(与Z轴)
+!angle2 = ATAN((len2*cos(angle1))/(len2*sin(angle1)-len1))   !加载点对着支座点的角度 !因len1是负的，故这里为减号
 d1 = 250            !管外径
 t1 = 10             !管壁厚
 t2 = 16             !十字板厚
@@ -32,11 +32,11 @@ msize = 20          !网格尺寸
 f_n = 1 !加载点节点编号
 s_n = 2 !支座点节点编号 
 !荷载 N / N*mm
-f_x = 0
-f_y = 0
-f_z = -200*1000     !不能有空格，空格后的不计算。
-m_x = 0
-m_y = 0
+f_x = 63*1000
+f_y = 1.5*1000
+f_z = -600*1000     !不能有空格，空格后的不计算。
+m_x = 2*1000
+m_y = 16*1000
 m_z = 0
 !求解
 substeps_num = 10
@@ -50,7 +50,7 @@ substeps_num = 10
 LOCAL, 11, CYLIN    !局部坐标系 柱坐标系
 LOCAL, 12, CYLIN, , , , , , angle1  !局部坐标系 斜柱坐标系 (in degrees)
 LOCAL, 13, CART, , , , , , angle1   !局部坐标系 斜坐标系
-LOCAL, 14, CART, , , , , , angle2   !局部坐标系 加载点对着支座点的斜坐标系
+!LOCAL, 14, CART, , , , , , angle2   !局部坐标系 加载点对着支座点的斜坐标系
 
 !激活整体坐标系
 CSYS, 0
@@ -60,8 +60,8 @@ CSYS, 0
 K, 1, 0, 0, 0                       !原点
 K, 2, 0, 0, len1                    !支座点
 K, 3, 0, 0, d1                      !相贯突出点
-K, 4, len2*cos(angle1), 0, len2*sin(angle1)     !折段端点
-K, 5, -d1*cos(angle1), 0, -d1*sin(angle1)       !折段相贯突出点
+K, 4, len2*sin(angle1), 0, len2*cos(angle1)     !折段端点
+K, 5, -d1*sin(angle1), 0, -d1*cos(angle1)       !折段相贯突出点
 K, 6, 0, 0, lenTB                   !圆管底端中心点
 K, 7, 0, 0, lenCT                   !十字板顶端中心点
 K, 8, -crossR, 0, len1              !十字板左端点
@@ -79,11 +79,11 @@ L, 10, 11   !十字板前后线
 !圆 !CIRCLE, PCENT, RAD, PAXIS, PZERO
 CIRCLE, 6, d1/2, 3
 CSYS, 11                    !激活局部坐标系
-LSEL, S, LOC, X, d1/2       !选择线
+LSEL, S, LOC, X, d1/2       !选择刚刚创建的圆的所有线
 CM, circle1, LINE           !命名
 CIRCLE, 4, d1/2, 5
 CSYS, 12                    !激活局部坐标系
-LSEL, S, LOC, X, d1/2       !选择线
+LSEL, S, LOC, X, d1/2       !选择刚刚创建的圆的所有线
 CM, circle2, LINE           !命名
 ALLSEL                      !Selects all entities with a single command.
 
@@ -168,8 +168,8 @@ AMESH, ALL              !划分网格
 CSYS, 13                !激活局部坐标系
 NSEL, S, LOC, Z, len2
 NROTAT, ALL             !Rotates nodal coordinate systems into the active system.
-CSYS, 14                !激活局部坐标系(力指向支座)
-!CSYS, 13                !激活局部坐标系(力指向圆管方向)
+!CSYS, 14                !激活局部坐标系(力指向支座)
+CSYS, 13                !激活局部坐标系(力指向圆管方向)
 NROTAT, f_n             !Rotates nodal coordinate systems into the active system.
 CERIG, f_n, ALL, ALL    !加载刚域 !CERIG, MASTE, SLAVE, Ldof, Ldof2, Ldof3, Ldof4, Ldof5 !主节点, 从节点
 ALLSEL                  !Selects all entities with a single command.
@@ -177,7 +177,7 @@ CSYS, 0                 !激活整体坐标系
 NSEL, S, LOC, Z, len1
 CERIG, s_n, ALL, ALL    !支座刚域
 ALLSEL                  !Selects all entities with a single command.
-NUMMRG, NODE            !合并重合节点 !NUMMRG, Label, TOLER, GTOLER, Action, Switch 
+!NUMMRG, NODE            !此命令会出错，可能把刚域点合并了 !合并重合节点 !NUMMRG, Label, TOLER, GTOLER, Action, Switch 
 NUMCMP, NODE            !压缩节点编号
 
 !!!加载
