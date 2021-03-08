@@ -17,8 +17,8 @@ Sfy = 345           !钢的屈服强度 N/mm2 !根据板材厚度查表
 !参数
 len1 = -600         !支座标高(相对于正负零)
 len2 = 1000         !折段长度
-len3 = 200          !十字板与圆管重合长度
-len4 = 200          !十字板露出长度
+len3 = 0            !十字板与圆管重合长度
+len4 = 0            !十字板露出长度
 lenTB = len1+len4   !圆管底端 TubeBottom
 lenCT = lenTB+len3  !十字板顶端 CrossTop
 angle1 = 23         !折段角度(与Z轴)
@@ -32,11 +32,11 @@ msize = 20          !网格尺寸
 f_n = 1 !加载点节点编号
 s_n = 2 !支座点节点编号 
 !荷载 N / N*mm
-f_x = 63*1000
+f_x = 87*1000
 f_y = 1.5*1000
-f_z = -600*1000     !不能有空格，空格后的不计算。
+f_z = -834*1000     !不能有空格，空格后的不计算。
 m_x = 2*1000
-m_y = 16*1000
+m_y = 41*1000
 m_z = 0
 !求解
 substeps_num = 10
@@ -62,22 +62,22 @@ K, 2, 0, 0, len1                    !支座点
 K, 3, 0, 0, d1                      !相贯突出点
 K, 4, len2*sin(angle1), 0, len2*cos(angle1)     !折段端点
 K, 5, -d1*sin(angle1), 0, -d1*cos(angle1)       !折段相贯突出点
-K, 6, 0, 0, lenTB                   !圆管底端中心点
-K, 7, 0, 0, lenCT                   !十字板顶端中心点
-K, 8, -crossR, 0, len1              !十字板左端点
-K, 9, crossR, 0, len1               !十字板右端点
-K, 10, 0, -crossR, len1             !十字板前端点
-K, 11, 0, crossR, len1              !十字板后端点
+!K, 6, 0, 0, lenTB                   !圆管底端中心点
+!K, 7, 0, 0, lenCT                   !十字板顶端中心点
+!K, 8, -crossR, 0, len1              !十字板左端点
+!K, 9, crossR, 0, len1               !十字板右端点
+!K, 10, 0, -crossR, len1             !十字板前端点
+!K, 11, 0, crossR, len1              !十字板后端点
 
 !线 !L, P1, P2
-L, 6, 3     !直管线
+L, 2, 3     !直管线 !L, 6, 3
 L, 4, 5     !斜管线
-L, 2, 7     !十字板线
-L, 8, 9     !十字板左右线
-L, 10, 11   !十字板前后线
+!L, 2, 7     !十字板线
+!L, 8, 9     !十字板左右线
+!L, 10, 11   !十字板前后线
 
 !圆 !CIRCLE, PCENT, RAD, PAXIS, PZERO
-CIRCLE, 6, d1/2, 3
+CIRCLE, 2, d1/2, 3          !CIRCLE, 6, d1/2, 3
 CSYS, 11                    !激活局部坐标系
 LSEL, S, LOC, X, d1/2       !选择刚刚创建的圆的所有线
 CM, circle1, LINE           !命名
@@ -90,22 +90,22 @@ ALLSEL                      !Selects all entities with a single command.
 !拖拉成面 !ADRAG, NL1, NL2, NL3, NL4, NL5, NL6, NLP1, NLP2, NLP3, NLP4, NLP5, NLP6
 ADRAG, circle1, , , , , , 1 !拖拉形成主管
 ADRAG, circle2, , , , , , 2 !拖拉形成主管
-ADRAG, 4, , , , , , 3       !拖拉形成十字板 !一起拖拉有问题，故分两次拖拉。
-ADRAG, 5, , , , , , 3       !拖拉形成十字板
+!ADRAG, 4, , , , , , 3       !拖拉形成十字板 !一起拖拉有问题，故分两次拖拉。
+!ADRAG, 5, , , , , , 3       !拖拉形成十字板
 
 !用工作平面切分
 CSYS, 0     !激活整体坐标系
 WPCSYS, , 0 !工作平面回到整体坐标系
 WPROTA, , , angle1/2    !旋转工作平面 !WPROTA, THXY, THYZ, THZX (in degrees)
-ASBW, ALL   !ASBW, NA, SEPO, KEEP
+ASBW, ALL   !切分 !ASBW, NA, SEPO, KEEP
 CSYS, 0     !激活整体坐标系
-ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
+!ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
 !不进行以下步骤，切分相交处平面，后续执行APTN命令会报错。
 !工作平面回到整体坐标系 !旋转工作平面 !WPROTA, THXY, THYZ, THZX !平移工作平面 !WPOFFS, XOFF, YOFF, ZOFF !ASBW, NA, SEPO, KEEP
-WPCSYS, , 0 $ WPROTA, , , 90 $ WPOFFS, 0, 0, d1/2 $ ASBW, ALL
-WPCSYS, , 0 $ WPROTA, , , 90 $ WPOFFS, 0, 0, -d1/2 $ ASBW, ALL
-WPCSYS, , 0 $ WPROTA, , 90,  $ WPOFFS, 0, 0, d1/2 $ ASBW, ALL
-WPCSYS, , 0 $ WPROTA, , 90,  $ WPOFFS, 0, 0, -d1/2 $ ASBW, ALL
+!WPCSYS, , 0 $ WPROTA, , , 90 $ WPOFFS, 0, 0, d1/2 $ ASBW, ALL
+!WPCSYS, , 0 $ WPROTA, , , 90 $ WPOFFS, 0, 0, -d1/2 $ ASBW, ALL
+!WPCSYS, , 0 $ WPROTA, , 90,  $ WPOFFS, 0, 0, d1/2 $ ASBW, ALL
+!WPCSYS, , 0 $ WPROTA, , 90,  $ WPOFFS, 0, 0, -d1/2 $ ASBW, ALL
 WPCSYS, , 0
 WPSTYL, , , , , , , , 0     !不显示工作平面 !WPSTYL, SNAP, GRSPAC, GRMIN, GRMAX, WPTOL, WPCTYP, GRTYPE, WPVIS, SNAPANG
 ALLSEL
@@ -130,9 +130,9 @@ CSYS, 14                    !激活局部坐标系
 LSEL, R, LOC, Z, 0          !选择圆管相交面的椭圆的所有线
 CM, ellipse1, LINE          !命名
 AL, ellipse1                !由线创建面
-CSYS, 11                    !激活局部坐标系
-ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
-APTN, ALL                   !Partitions areas. 分隔运算，边界共享。
+!CSYS, 11                    !激活局部坐标系
+!ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
+!APTN, ALL                   !Partitions areas. 分隔运算，边界共享。
 ALLSEL
 APTN, ALL
 
@@ -143,7 +143,7 @@ ET, 2, SHELL181 !壳单元
 !实常数 REAL
 R, 1, 0         !重量
 R, 2, t1        !壁厚
-R, 3, t2        !壁厚
+!R, 3, t2        !壁厚
 !材料属性 MAT
 MATNUM = 1              !材料参考号
 MP, EX, MATNUM, Es      !弹性模量
@@ -162,9 +162,9 @@ E, f_n                  !定义单元
 E, s_n                  !定义单元
 
 CSYS, 11                !激活局部坐标系
-ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
-AATT, MATNUM, 3, 2      !设置面单元属性!AATT, MAT, REAL, TYPE, ESYS, SECN
-ASEL, INVE              !选择除十字板外AREA(即圆管)
+!ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
+!AATT, MATNUM, 3, 2      !设置面单元属性!AATT, MAT, REAL, TYPE, ESYS, SECN
+ASEL, ALL               !选择所有单元
 AATT, MATNUM, 2, 2      !设置面单元属性!AATT, MAT, REAL, TYPE, ESYS, SECN
 ALLSEL                  !全选
 LESIZE, circle2, msize*2!边界处可划分的粗一点(加速计算)
