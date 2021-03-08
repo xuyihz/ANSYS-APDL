@@ -22,7 +22,7 @@ len4 = 200          !十字板露出长度
 lenTB = len1+len4   !圆管底端 TubeBottom
 lenCT = lenTB+len3  !十字板顶端 CrossTop
 angle1 = 23         !折段角度(与Z轴)
-!angle2 = ATAN((len2*cos(angle1))/(len2*sin(angle1)-len1))   !加载点对着支座点的角度 !因len1是负的，故这里为减号
+angle2 = angle1/2   !圆管相交面的角度
 d1 = 250            !管外径
 t1 = 10             !管壁厚
 t2 = 16             !十字板厚
@@ -50,7 +50,7 @@ substeps_num = 10
 LOCAL, 11, CYLIN    !局部坐标系 柱坐标系
 LOCAL, 12, CYLIN, , , , , , angle1  !局部坐标系 斜柱坐标系 (in degrees)
 LOCAL, 13, CART, , , , , , angle1   !局部坐标系 斜坐标系
-!LOCAL, 14, CART, , , , , , angle2   !局部坐标系 加载点对着支座点的斜坐标系
+LOCAL, 14, CYLIN, , , , , , angle2  !局部坐标系 圆管相交面
 
 !激活整体坐标系
 CSYS, 0
@@ -122,6 +122,14 @@ CM, cube2, AREA             !命名
 ALLSEL
 ADELE, cube1, , , 1         !删除多余的面
 ADELE, cube2, , , 1
+!创建圆管弯折处加劲板位置的平面
+CSYS, 12                    !激活局部坐标系
+ASEL, S, LOC, X, d1/2       !选择所有直管面
+LSLA, R                     !Selects those lines contained in the selected areas. !S:Select a new set (default). !R:Reselect a set from the current set.
+CSYS, 14                    !激活局部坐标系
+LSEL, R, LOC, Z, 0          !选择圆管相交面的椭圆的所有线
+CM, ellipse1, LINE          !命名
+AL, ellipse1                !由线创建面
 CSYS, 11                    !激活局部坐标系
 ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
 APTN, ALL                   !Partitions areas. 分隔运算，边界共享。
