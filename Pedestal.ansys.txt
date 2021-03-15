@@ -19,6 +19,7 @@ len1 = -600         !支座标高(相对于正负零)
 len2 = 1000         !折段长度
 len3 = 0            !十字板与圆管重合长度
 len4 = 0            !十字板露出长度
+len5 = 50           !加劲板与原点间隔距离
 lenTB = len1+len4   !圆管底端 TubeBottom
 lenCT = lenTB+len3  !十字板顶端 CrossTop
 angle1 = 23         !折段角度(与Z轴)
@@ -30,7 +31,7 @@ crossR = d1/2+t1*2  !十字板长度的一半(坐标定位用)
 msize = 20          !网格尺寸
 !编号
 f_n = 1 !加载点节点编号
-s_n = 2 !支座点节点编号 
+s_n = 2 !支座点节点编号
 !荷载 N / N*mm
 f_x = 87*1000
 f_y = 1.5*1000
@@ -68,6 +69,8 @@ K, 5, -d1*sin(angle1), 0, -d1*cos(angle1)       !折段相贯突出点
 !K, 9, crossR, 0, len1               !十字板右端点
 !K, 10, 0, -crossR, len1             !十字板前端点
 !K, 11, 0, crossR, len1              !十字板后端点
+K, 12, len5*sin(angle1), 0, len5*cos(angle1)    !加劲板1
+K, 13, 0, 0, -len5                   !加劲板2
 
 !线 !L, P1, P2
 L, 2, 3     !直管线 !L, 6, 3
@@ -85,6 +88,15 @@ CIRCLE, 4, d1/2, 5
 CSYS, 12                    !激活局部坐标系
 LSEL, S, LOC, X, d1/2       !选择刚刚创建的圆的所有线
 CM, circle2, LINE           !命名
+
+CIRCLE, 12, d1/2, 1         !
+CSYS, 12                    !激活局部坐标系
+LSEL, S, LOC, Z, len5       !选择刚刚创建的圆的所有线
+CM, circle3, LINE           !命名
+CIRCLE, 13, d1/2, 1         !
+CSYS, 11                    !激活局部坐标系
+LSEL, S, LOC, Z, -len5      !选择刚刚创建的圆的所有线
+CM, circle4, LINE           !命名
 ALLSEL                      !Selects all entities with a single command.
 
 !拖拉成面 !ADRAG, NL1, NL2, NL3, NL4, NL5, NL6, NLP1, NLP2, NLP3, NLP4, NLP5, NLP6
@@ -123,13 +135,16 @@ ALLSEL
 ADELE, cube1, , , 1         !删除多余的面
 ADELE, cube2, , , 1
 !创建圆管弯折处加劲板位置的平面
-CSYS, 12                    !激活局部坐标系
-ASEL, S, LOC, X, d1/2       !选择所有直管面
-LSLA, R                     !Selects those lines contained in the selected areas. !S:Select a new set (default). !R:Reselect a set from the current set.
-CSYS, 14                    !激活局部坐标系
-LSEL, R, LOC, Z, 0          !选择圆管相交面的椭圆的所有线
-CM, ellipse1, LINE          !命名
-AL, ellipse1                !由线创建面
+!CSYS, 12                    !激活局部坐标系
+!ASEL, S, LOC, X, d1/2       !选择所有直管面
+!LSLA, R                     !Selects those lines contained in the selected areas. !S:Select a new set (default). !R:Reselect a set from the current set.
+!CSYS, 14                    !激活局部坐标系
+!LSEL, R, LOC, Z, 0          !选择圆管相交面的椭圆的所有线
+!CM, ellipse1, LINE          !命名
+!AL, ellipse1                !由线创建面
+!创建圆管弯折处两个加劲板
+AL, circle3                 !由线创建面
+AL, circle4                 !由线创建面
 !CSYS, 11                    !激活局部坐标系
 !ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
 !APTN, ALL                   !Partitions areas. 分隔运算，边界共享。
