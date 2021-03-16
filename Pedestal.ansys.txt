@@ -25,6 +25,7 @@ lenCT = lenTB+len3  !十字板顶端 CrossTop
 angle1 = 23         !折段角度(与Z轴)
 angle2 = angle1/2   !圆管相交面的角度
 d1 = 250            !管外径
+dHole = 200         !灌浆孔直径
 t1 = 10             !管壁厚
 t2 = 16             !十字板厚
 crossR = d1/2+t1*2  !十字板长度的一半(坐标定位用)
@@ -89,14 +90,20 @@ CSYS, 12                    !激活局部坐标系
 LSEL, S, LOC, X, d1/2       !选择刚刚创建的圆的所有线
 CM, circle2, LINE           !命名
 
-CIRCLE, 12, d1/2, 1         !
 CSYS, 12                    !激活局部坐标系
+CIRCLE, 12, d1/2, 1         !!
 LSEL, S, LOC, Z, len5       !选择刚刚创建的圆的所有线
 CM, circle3, LINE           !命名
-CIRCLE, 13, d1/2, 1         !
+CIRCLE, 12, dHole/2, 1      !!
+LSEL, S, LOC, X, dHole/2    !选择刚刚创建的圆的所有线
+CM, circle3H, LINE          !命名
 CSYS, 11                    !激活局部坐标系
+CIRCLE, 13, d1/2, 1         !!
 LSEL, S, LOC, Z, -len5      !选择刚刚创建的圆的所有线
 CM, circle4, LINE           !命名
+CIRCLE, 13, dHole/2, 1      !!
+LSEL, S, LOC, X, dHole/2    !选择刚刚创建的圆的所有线
+CM, circle4H, LINE          !命名
 ALLSEL                      !Selects all entities with a single command.
 
 !拖拉成面 !ADRAG, NL1, NL2, NL3, NL4, NL5, NL6, NLP1, NLP2, NLP3, NLP4, NLP5, NLP6
@@ -143,8 +150,14 @@ ADELE, cube2, , , 1
 !CM, ellipse1, LINE          !命名
 !AL, ellipse1                !由线创建面
 !创建圆管弯折处两个加劲板
-AL, circle3                 !由线创建面
-AL, circle4                 !由线创建面
+WPCSYS, , 0 !工作平面回到整体坐标系
+WPROTA, , , angle1          !旋转工作平面 !WPROTA, THXY, THYZ, THZX (in degrees)
+WPOFFS, , , len5            !Offsets the working plane.
+PCIRC, d1/2, dHole/2        !Creates a circular area centered about the working plane origin.
+WPCSYS, , 0 !工作平面回到整体坐标系
+WPOFFS, , , -len5           !Offsets the working plane.
+PCIRC, d1/2, dHole/2        !Creates a circular area centered about the working plane origin.
+WPCSYS, , 0 !工作平面回到整体坐标系
 !CSYS, 11                    !激活局部坐标系
 !ASEL, S, LOC, Z, (len1+lenCT)/2 !选择十字板(几何形心点)
 !APTN, ALL                   !Partitions areas. 分隔运算，边界共享。
